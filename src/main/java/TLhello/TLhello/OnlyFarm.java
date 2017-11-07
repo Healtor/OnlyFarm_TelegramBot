@@ -7,205 +7,244 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.plaf.metal.MetalPopupMenuSeparatorUI;
+
 import org.telegram.telegrambots.api.methods.groupadministration.KickChatMember;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.methods.send.SendSticker;
 import org.telegram.telegrambots.api.objects.Document;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
+
+import com.google.inject.spi.Message;
 import com.vdurmont.emoji.EmojiParser;
 
 public class OnlyFarm extends TelegramLongPollingBot {
-	
+
 	MySQL weje = new MySQL();
 	Boolean derrocarGobierno = false;
+	Date bdias = new Date();
+	Date bnoches = new Date();
 
 	public void onUpdateReceived(Update update) {
-
-		//EXPULSIONES
-		if(update.hasMessage() && update.getMessage().getLeftChatMember()!=null) {
-			String respuesta = "";
-			long chat_id = update.getMessage().getChatId();	
-			long replyid = 0;
-			if(update.getMessage().getLeftChatMember().getId()!=169092) {
-				respuesta =update.getMessage().getLeftChatMember().getFirstName()+ " ha sido expulsado, nos vemos pronto! o no...";
-			}else {
-				respuesta =EmojiParser
-						.parseToUnicode("¡¡"+update.getMessage().getFrom().getFirstName().toUpperCase()+ " HAS EXPULSADO A MI CREADOR!!, ¡¡ESTO NO QUEDARÁ ASÍ :rage::rage:!! \n"
-						+ " ACTIVANDO EL MODO \"DERROCAR AL GOBIERNO CORRUPTO\"...  ");
-				derrocarGobierno=true;
-			}		
-			mandarmensaje(chat_id, respuesta, replyid);
-		}else 
-			
-		//INVITACIONES A GRUPO
-		if(update.hasMessage() && update.getMessage().getNewChatMembers()!=null) {
-			String respuesta = "";
-			long chat_id = update.getMessage().getChatId();	
-			long replyid = 0;
-			if(update.getMessage().getNewChatMembers().get(0).getId()!=169092) {
-				respuesta = "Bienvenido al grupo "+update.getMessage().getNewChatMembers().get(0).getFirstName()+" ¿buen tiempo fuera? ¿estás más calmadito?";
-			}else {
-				respuesta =EmojiParser
-						.parseToUnicode("Bienvenido de vuelta amo, todo tranquilo en su ausencia :)");
-				derrocarGobierno=false;
-			}
-						
-			mandarmensaje(chat_id, respuesta, replyid);
-		}else
 		
-		// MENSAJES CON TEXTO
-		if (update.hasMessage() && update.getMessage().hasText()) {
+		//System.out.println(update.getMessage());
+		
+		Long l=update.getMessage().getChatId();
 
-			// Set variables
-			String user_first_name = update.getMessage().getFrom().getFirstName();
-			String user_last_name = update.getMessage().getFrom().getLastName();
-			String alias = update.getMessage().getFrom().getUserName();
-			String message_text = update.getMessage().getText();
+		if (l == -1001193270199L || l == -1001118254446L) {
 			
-			long user_id = update.getMessage().getFrom().getId();
-			long chat_id = update.getMessage().getChatId();						
-			long msg_id = update.getMessage().getMessageId();
 
-			String respuesta = "";
-			long replyid = 0;
-			boolean ejecutar=false;
-			
-			String mensaje=message_text.toLowerCase();
-			
-			if(mensaje.contains("buenos dias") || mensaje.contains("buenos días")) {
-				buenosdias(chat_id, replyid);
-				
-			}else if (mensaje.contains("buenas noches")){
-				buenasnoches(chat_id, user_first_name, replyid);
-				
-			}else if (mensaje.contains("server on")){
-				respuesta = "SIIII!!! ESTOY VIIVOOOOOO!!";
-				replyid = msg_id;
-				mandarmensaje(chat_id, respuesta, replyid);
-
-			} else if (mensaje.contains("quien soy")) {
-				
-				quiensoy(user_id, chat_id, replyid);
-				
-
-			} else if (mensaje.contains("@todos")) {
-				respuesta= "@Healtor, @karakatuchi, @pillgg, @Nerdlux (traidicionador)";
-				mandarmensaje(chat_id, respuesta, replyid);
-				respuesta=" @alfonsotakles, @JiroMercer, @alvarokan94, @juglar94 y @Mecagoentotusmuertossodesgracia";
-				mandarmensaje(chat_id, respuesta, replyid);
-			} else if (mensaje.contains("/warn")) {
-				int resul = 0;
-				boolean noJaime = true;
-				// no uno mismo y no bot
-				if (user_id != update.getMessage().getReplyToMessage().getFrom().getId()
-						&& update.getMessage().getReplyToMessage().getFrom().getId() != 494431475) {
-					if (user_id == 169092 || user_id == 39226004 || user_id == 173507959) { // ADMIN
-						if (update.getMessage().getReplyToMessage().getFrom().getId() == 169092) { // warn Jaime
-							respuesta = "Lo siento, no puedo castigar a mi creador, va en contra de mi programación.";
-							mandarmensaje(chat_id, respuesta, replyid);
-							noJaime = false;
-						} else { // warn normal
-							resul = weje.modificarUsuario(update.getMessage().getReplyToMessage().getFrom().getId());
-							replyid = update.getMessage().getReplyToMessage().getMessageId();
-						}
-					} else {// NO ADMIN
-						respuesta = "Pero quién te crees que eres? NO eres admin, cállate. Y de regalito un warn pa' ti. :)";
-						mandarmensaje(chat_id, respuesta, replyid);
-						resul = weje.modificarUsuario(user_id);
-						replyid = update.getMessage().getMessageId();
-					}
-
-					if (noJaime)
-						if (resul == 4) {
-							respuesta = "BAIA BAIA, 3 avisos ya, te vas a ir pirando ya... a ver si te calmas :)";
-							mandarmensaje(chat_id, respuesta, replyid);
-
-							try {
-								KickChatMember k = new KickChatMember(chat_id,
-										update.getMessage().getReplyToMessage().getFrom().getId());
-								super.kickMember(k);
-
-							} catch (TelegramApiException e) {
-								e.printStackTrace();
-							}
-						} else {
-							respuesta = "Ups, un aviso pa' tu body, llevas " + resul
-									+ ", ojito que la salida esta cerca";
-							mandarmensaje(chat_id, respuesta, replyid);
-
-						}
-				}
-			} else if (mensaje.contains("/unwarn")) {
-
-				if (user_id == 169092 || user_id == 39226004 || user_id == 173507959) { // ADMIN
-					String nombre = weje.quitarWarns(update.getMessage().getReplyToMessage().getFrom().getId());
-					respuesta = "Listo!, le he quitado todos los warn a @" + nombre;
-					mandarmensaje(chat_id, respuesta, replyid);
-
-				}
-
-			} else if (mensaje.contains("toni")) {
-				baiaUnToni(chat_id, replyid);
-
-			} else if (mensaje.contains("@onlyfarm_bot activa el arma secreta")) {
-				if (user_id == 169092) { //yo
-					respuesta="Si, mi amo, activando el modo \"Derrocar al gobierno corrupto\"... ";
-					replyid = update.getMessage().getMessageId();
-					mandarmensaje(chat_id, respuesta, replyid);
-					derrocarGobierno = true;
+			// EXPULSIONES
+			if (update.hasMessage() && update.getMessage().getLeftChatMember() != null) {
+				String respuesta = "";
+				long chat_id = update.getMessage().getChatId();
+				long replyid = 0;
+				if (update.getMessage().getLeftChatMember().getId() != 169092) {
+					respuesta = update.getMessage().getLeftChatMember().getFirstName()
+							+ " ha sido expulsado, nos vemos pronto! o no...";
 				} else {
-					respuesta = "Lo siento, no tienes permisos para activar este arma ";
-					replyid = update.getMessage().getMessageId();
-					mandarmensaje(chat_id, respuesta, replyid);
+					respuesta = EmojiParser
+							.parseToUnicode("¡¡" + update.getMessage().getFrom().getFirstName().toUpperCase()
+									+ " HAS EXPULSADO A MI CREADOR!!, ¡¡ESTO NO QUEDARÁ ASÍ :rage::rage:!! \n"
+									+ " ACTIVANDO EL MODO \"DERROCAR AL GOBIERNO CORRUPTO\"...  ");
+					derrocarGobierno = true;
 				}
+				mandarmensaje(chat_id, respuesta, replyid);
+			} else
 
-			} else if (mensaje.contains("@onlyfarm_bot desactivala")) {
-				if (user_id == 169092) { // yo
-					respuesta = "Joo.. con lo bien que me lo estaba pasando... :( ";
-					replyid = update.getMessage().getMessageId();
-					mandarmensaje(chat_id, respuesta, replyid);
+			// INVITACIONES A GRUPO
+			if (update.hasMessage() && update.getMessage().getNewChatMembers() != null) {
+				String respuesta = "";
+				long chat_id = update.getMessage().getChatId();
+				long replyid = 0;
+				if (update.getMessage().getNewChatMembers().get(0).getId() != 169092) {
+					respuesta = "Hola " + update.getMessage().getNewChatMembers().get(0).getFirstName()
+							+ ", bienvenido a la República Democrática Autocrática de Only Farm TL Edition, presidida por nuestro querido y glorioso Gran Líder Karakatuchi. Si eres nuevo en el grupo, jura cumplir con nuestra constitución, proteger la bandera ante la adversidad y servir fielmente desde ahora y para siempre. No traidiciones porque el Gran Líder tiene el dedo de echar gente calentito. Si habías sido expulsado y ahora metido de nuevo en el grupo, no es porque te echemos de menos, seguro que es porque nos has dado pena con esa cara que tienes.";
+				} else {
+					respuesta = EmojiParser
+							.parseToUnicode("Bienvenido de vuelta amo, todo tranquilo en su ausencia :)");
 					derrocarGobierno = false;
 				}
 
-			} else if ((user_id == 173507959 ) && derrocarGobierno) {
-				replyid = update.getMessage().getMessageId();
-				derrocarGobierno(chat_id, replyid);
-			}else if (mensaje.contains("@onlyfarm_bot")){
-				respuesta = "siiiii???";
-				replyid = msg_id;
 				mandarmensaje(chat_id, respuesta, replyid);
+			} else
+
+			// MENSAJES CON TEXTO
+			if (update.hasMessage() && update.getMessage().hasText()) {
+
+				// Set variables
+				String user_first_name = update.getMessage().getFrom().getFirstName();
+				String user_last_name = update.getMessage().getFrom().getLastName();
+				String alias = update.getMessage().getFrom().getUserName();
+				String message_text = update.getMessage().getText();
+
+				long user_id = update.getMessage().getFrom().getId();
+				long chat_id = update.getMessage().getChatId();
+				long msg_id = update.getMessage().getMessageId();
+
+				String respuesta = "";
+				long replyid = 0;
+				boolean ejecutar = false;
+
+				String mensaje = message_text.toLowerCase();
+
+				if (mensaje.contains("buenos dias") || mensaje.contains("buenos días")) {
+					buenosdias(chat_id, replyid, user_id);
+
+				} else if (mensaje.contains("buenas noche")) {
+					buenasnoches(chat_id, user_first_name, replyid);
+
+				} else if (mensaje.contains("server on")) {
+					respuesta = "SIIII!!! ESTOY VIIVOOOOOO!!";
+					replyid = msg_id;
+					mandarmensaje(chat_id, respuesta, replyid);
+
+				} else if (mensaje.contains("quien soy")) {
+
+					quiensoy(user_id, chat_id, replyid);
+
+				} else if (mensaje.contains("@todos")) {
+					respuesta = "@Healtor, @karakatuchi, @pillgg, @Nerdlux (traidicionador)";
+					mandarmensaje(chat_id, respuesta, replyid);
+					respuesta = " @alfonsotakles, @JiroMercer, @alvarokan94, @juglar94 y @Mecagoentotusmuertossodesgracia";
+					mandarmensaje(chat_id, respuesta, replyid);
+				} else if (mensaje.contains("/warn")) {
+					int resul = 0;
+					boolean noJaime = true;
+					// no uno mismo y no bot
+					if (update.getMessage().getReplyToMessage() != null) {
+						if (user_id != update.getMessage().getReplyToMessage().getFrom().getId()
+								&& update.getMessage().getReplyToMessage().getFrom().getId() != 494431475) {
+							if (user_id == 169092 || user_id == 39226004 || user_id == 173507959) { // ADMIN
+								if (update.getMessage().getReplyToMessage().getFrom().getId() == 169092) { // warn Jaime
+									respuesta = "Lo siento, no puedo castigar a mi creador, va en contra de mi programación.";
+									mandarmensaje(chat_id, respuesta, replyid);
+									noJaime = false;
+								} else { // warn normal
+									System.out.println(update.getMessage().getReplyToMessage().getFrom().getId());
+									resul = weje.modificarUsuario(
+											update.getMessage().getReplyToMessage().getFrom().getId());
+									replyid = update.getMessage().getReplyToMessage().getMessageId();
+									// PRIVADO
+									mandarmensaje(update.getMessage().getReplyToMessage().getFrom().getId(),
+											"esto es un mensaje por privado", 0);
+								}
+							} else {// NO ADMIN
+								respuesta = "Pero quién te crees que eres? NO eres admin, cállate. Y de regalito un warn pa' ti. :)";
+								mandarmensaje(chat_id, respuesta, replyid);
+								resul = weje.modificarUsuario(user_id);
+								replyid = update.getMessage().getMessageId();
+							}
+
+							if (noJaime)
+								if (resul == 4) {
+									respuesta = "BAIA BAIA, 3 avisos ya, te vas a ir pirando ya... a ver si te calmas :)";
+									mandarmensaje(chat_id, respuesta, replyid);
+
+									try {
+										KickChatMember k = new KickChatMember(chat_id,
+												update.getMessage().getReplyToMessage().getFrom().getId());
+										super.kickMember(k);
+
+									} catch (TelegramApiException e) {
+										e.printStackTrace();
+									}
+								} else {
+									respuesta = "Ups, un aviso pa' tu body, llevas " + resul
+											+ ", ojito que la salida esta cerca";
+									mandarmensaje(chat_id, respuesta, replyid);
+
+								}
+						}
+					}
+					mandarmensaje(chat_id, "Responde a un mensaje primero", replyid);
+					
+				} else if (mensaje.contains("/unwarn")) {
+
+					if (user_id == 169092 || user_id == 39226004 || user_id == 173507959) { // ADMIN
+						String nombre = weje.quitarWarns(update.getMessage().getReplyToMessage().getFrom().getId());
+						respuesta = "Listo!, le he quitado todos los warn a @" + nombre;
+						mandarmensaje(chat_id, respuesta, replyid);
+
+					}
+
+				} else if (mensaje.contains("toni")) {
+					baiaUnToni(chat_id, replyid);
+
+				} else if (mensaje.contains("@onlyfarm_bot activa el arma secreta")) {
+					if (user_id == 169092) { // yo
+						respuesta = "Si, mi amo, activando el modo \"Derrocar al gobierno corrupto\"... ";
+						replyid = update.getMessage().getMessageId();
+						mandarmensaje(chat_id, respuesta, replyid);
+						derrocarGobierno = true;
+					} else {
+						respuesta = "Lo siento, no tienes permisos para activar este arma ";
+						replyid = update.getMessage().getMessageId();
+						mandarmensaje(chat_id, respuesta, replyid);
+					}
+
+				} else if (mensaje.contains("@onlyfarm_bot desactivala")) {
+					if (user_id == 169092) { // yo
+						respuesta = "Joo.. con lo bien que me lo estaba pasando... :( ";
+						replyid = update.getMessage().getMessageId();
+						mandarmensaje(chat_id, respuesta, replyid);
+						derrocarGobierno = false;
+					}
+
+				} else if ((user_id == 173507959) && derrocarGobierno) {
+					replyid = update.getMessage().getMessageId();
+					derrocarGobierno(chat_id, replyid);
+				} else if (mensaje.contains("@onlyfarm_bot")) {
+					respuesta = "siiiii???";
+					replyid = msg_id;
+					mandarmensaje(chat_id, respuesta, replyid);
+
+				} else if (mensaje.contains("traidicion")) {
+					String field = weje.getGif("traidicion");
+					mandarGif(chat_id, field, replyid);
+				} else if (mensaje.contains("pollo")) {
+					mandarSticker(chat_id, "CAADBAADiAAD70_CCQQ61-IL2XAyAg");
+				} else if (mensaje.contains("caña")) {
+					mandarSticker(chat_id, "CAADBAADqgAD70_CCU0HD5j9qa24Ag");
+				} else if (mensaje.contains("calmarno")) {
+					mandarSticker(chat_id, "CAADBAADUQEAAtoAAQ4JYteU7EX3eYgC");
+				} else if (mensaje.contains("toalla")) {
+					mandarSticker(chat_id, "CAADBAADZwUAAo_pZgABq4hyxmbzVbwC");
+				} else if (mensaje.contains("!constitucion") ||mensaje.contains("!constitución")) {
+					mandarmensaje(chat_id, "Va, te la mando por privado", replyid);
+					mandarGif(user_id,"BQADBAADSAIAArPwEFDjXRY_HxBvCgI", replyid);
+				} else if (mensaje.contains("!bandera")) {	
+					mandarFoto(chat_id, "AgADBAADZ6sxG7PwEFA7TKEWhp9SkElf4xkABPjtrOTuVmRWqc0DAAEC", replyid);
+				} else if (mensaje.contains("!lider")) {	
+					mandarFoto(chat_id, "AgADBAADaqsxG7PwEFCiUpZrquc8IBXg-RkABDBdSopSQpDaV-YCAAEC", replyid);
+				}
 				
-			}else if (mensaje.contains("traidicion")){
-				String field = weje.getGif("traidicion");
-				mandarGif(chat_id, field, replyid);
-				
+		
+				// --------------------------
+
+				log(user_first_name, alias, Long.toString(user_id), message_text, respuesta);
+				weje.insertarUsuario(user_id, user_first_name, user_last_name, alias, 0);
+
 			}
-			
-		
-			// --------------------------
+			// DOCUMENTOS (GIFs)
+			else if (update.getMessage().hasDocument()) {
 
-			log(user_first_name, alias, Long.toString(user_id), message_text, respuesta);
-			weje.insertarUsuario(user_id, user_first_name, user_last_name, alias, 0);
+				if (update.getMessage().getDocument().getFileId().equals("CgADBAADPAEAAmUROFIhXVgwCVYc6QI")) {
+					long chat_id = update.getMessage().getChatId();
+					mandarGif(chat_id, "CgADBAADPAEAAmUROFIhXVgwCVYc6QI", update.getMessage().getMessageId());
 
-			
-		}
-		//DOCUMENTOS (GIFs)
-		else if(update.getMessage().hasDocument()) {
+				}
 
-			if (update.getMessage().getDocument().getFileId().equals("CgADBAADPAEAAmUROFIhXVgwCVYc6QI")){
-				long chat_id = update.getMessage().getChatId();		
-				mandarGif(chat_id, "CgADBAADPAEAAmUROFIhXVgwCVYc6QI", update.getMessage().getMessageId());
-				
+				System.out.println("gif:" + update.getMessage().getDocument());
 			}
-		
-		
-		System.out.println("gif:"+ update.getMessage().getDocument());
+			System.out.println("MENSAJEEE: " + update.getMessage());
+
 		}
-		System.out.println("MENSAJEEE: "+ update.getMessage());
 	}
 
 	private void derrocarGobierno(long chat_id, long replyid) {
@@ -241,6 +280,11 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		frases.add("Gran amigo del moho");
 		frases.add("Top instagramer");
 		frases.add("Toni, el que compró el paquete de stickers premium de telegram");
+		frases.add("Campeón del mundo en llegar tarde");
+		frases.add("El traidicionador exhiliado");
+		frases.add("Limpia la cocina de una vez, por favor.");
+		frases.add("Amigo de sus amigos, aunque nuestro ya no.");
+		
 		
 		int random =  (int) (Math.random()*frases.size());		
 		mandarmensaje(chat_id, frases.get(random), replyid);
@@ -317,25 +361,45 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		}
 	}
 	
-	private void buenosdias(long chat_id, long replyid) {
 
+	private void mandarSticker(long chat_id, String sticker) {
+		SendSticker s = new SendSticker();
+		s.setChatId(chat_id);
+		s.setSticker(sticker);
 		try {
-			DateFormat dateF = new SimpleDateFormat("HH:mm");
-			Date horaActual=new Date(); 
-			
-			horaActual=dateF.parse(horaActual.getHours()+":"+horaActual.getMinutes());
-			Date horaIni=dateF.parse("6:00");
-			Date horaFin=dateF.parse("12:00");
-			
-			if(horaActual.before(horaFin) && horaActual.after(horaIni)) {
-				mandarmensaje(chat_id, "¡¡Buenos días!!, ¿Habéis dormido bien?", replyid);
-			}else
-				mandarmensaje(chat_id, "En serio? buenos días a estas horas? ... revísatelo...", replyid);
-			
-		} catch (ParseException e) {
+			super.sendSticker(s);
+		} catch (TelegramApiException e) {
 			e.printStackTrace();
-		}	
-		
+		}
+	}
+
+	private void buenosdias(long chat_id, long replyid, long userid) {
+		Date horaActual = new Date();
+		DateFormat dateF = new SimpleDateFormat("HH:mm");
+		try {
+			bdias=dateF.parse(bdias.getHours() + ":" + bdias.getMinutes());
+			horaActual = dateF.parse(horaActual.getHours() + ":" + horaActual.getMinutes());
+			System.out.println(horaActual.getTime() -bdias.getTime() );
+			if (horaActual.getTime() -bdias.getTime() >= 10*60*1000) {
+
+				Date horaIni = dateF.parse("6:00");
+				Date horaFin = dateF.parse("12:00");
+
+				if (horaActual.before(horaFin) && horaActual.after(horaIni)) {
+					if(userid==173507959) { //GLK
+						mandarSticker(chat_id,"CAADBAADjgAD70_CCUCbuRnXNN7uAg");
+					}else
+					mandarmensaje(chat_id, "¡¡Buenos días!!, ¿Habéis dormido bien?", replyid);
+				} else
+					mandarmensaje(chat_id, "En serio? buenos días a estas horas? ... revísatelo...", replyid);
+
+				bdias = horaActual;
+			}
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 	}
 	
 	private void buenasnoches(long chat_id,String nombre,long replyid) {
@@ -343,7 +407,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		try {
 			DateFormat dateF = new SimpleDateFormat("HH:mm");
 			Date horaActual=new Date(); 
-			
+			bnoches=dateF.parse(bnoches.getHours() + ":" + bnoches.getMinutes());
 			horaActual=dateF.parse(horaActual.getHours()+":"+horaActual.getMinutes());
 			Date horaIni1=dateF.parse("21:00");
 			Date horaFin1=dateF.parse("23:59");
@@ -351,15 +415,22 @@ public class OnlyFarm extends TelegramLongPollingBot {
 			Date horaFin2=dateF.parse("6:00");
 			Date hora1=dateF.parse("12:00");
 
-			if((horaActual.before(horaFin1) && horaActual.after(horaIni1))
-					||(horaActual.before(horaFin2) && horaActual.after(horaIni2)) ) {
-				mandarmensaje(chat_id, "¡Buenas noches! que descanses "+nombre+"!", replyid);
-			}else if (horaActual.before(horaIni1) && horaActual.after(hora1)) {
-				mandarmensaje(chat_id, "¿No es un poco pronto para irse a dormir?", replyid);
-			}else if  (horaActual.after(horaFin2) && (horaActual.before(hora1))){
-				mandarmensaje(chat_id, "Pero si ya es hora estar levantado, ¡¡A trabajar!!", replyid);
+			if(horaActual.getTime() -bnoches.getTime() >= 10*60*1000) {
+				
+				if((horaActual.before(horaFin1) && horaActual.after(horaIni1))
+						||(horaActual.before(horaFin2) && horaActual.after(horaIni2)) ) {
+					mandarmensaje(chat_id, "¡Buenas noches! que descanses "+nombre+"!", replyid);
+				}else if (horaActual.before(horaIni1) && horaActual.after(hora1)) {
+					mandarmensaje(chat_id, "¿No es un poco pronto para irse a dormir?", replyid);
+				}else if  (horaActual.after(horaFin2) && (horaActual.before(hora1))){
+					mandarmensaje(chat_id, "Pero si ya es hora estar levantado, ¡¡A trabajar!!", replyid);
 
+				}
+				
+				bnoches = horaActual;
 			}
+			
+		
 			
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -381,6 +452,19 @@ public class OnlyFarm extends TelegramLongPollingBot {
 			}
 	}
 
+	private void mandarFoto(long chat_id, String document, long replyid) {
+		
+		SendPhoto ph=new SendPhoto();
+		ph.setPhoto(document);
+		ph.setChatId(chat_id);
+		try {
+			super.sendPhoto(ph);
+		} catch (TelegramApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 	public String getBotUsername() {
 		return "OnlyFarm_bot";
 	}
