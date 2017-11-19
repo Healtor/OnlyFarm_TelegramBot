@@ -6,31 +6,29 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.swing.plaf.metal.MetalPopupMenuSeparatorUI;
-
+import java.util.StringTokenizer;
+import org.telegram.telegrambots.api.methods.groupadministration.ExportChatInviteLink;
 import org.telegram.telegrambots.api.methods.groupadministration.KickChatMember;
 import org.telegram.telegrambots.api.methods.send.SendDocument;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.methods.send.SendSticker;
-import org.telegram.telegrambots.api.objects.Document;
 import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
-
-import com.google.inject.spi.Message;
 import com.vdurmont.emoji.EmojiParser;
 
 public class OnlyFarm extends TelegramLongPollingBot {
 
 	MySQL weje = new MySQL();
 	Boolean derrocarGobierno = false;
+	long idExpulsor=0;
 	Date bdias = new Date();
 	Date bnoches = new Date();
 
 	public void onUpdateReceived(Update update) {
+		
+		
 		
 		//System.out.println(update.getMessage());
 		
@@ -38,7 +36,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 
 		if (l == -1001193270199L || l == -1001118254446L) {
 			
-
+			
 			// EXPULSIONES
 			if (update.hasMessage() && update.getMessage().getLeftChatMember() != null) {
 				String respuesta = "";
@@ -52,12 +50,13 @@ public class OnlyFarm extends TelegramLongPollingBot {
 							.parseToUnicode("¡¡" + update.getMessage().getFrom().getFirstName().toUpperCase()
 									+ " HAS EXPULSADO A MI CREADOR!!, ¡¡ESTO NO QUEDARÁ ASÍ :rage::rage:!! \n"
 									+ " ACTIVANDO EL MODO \"DERROCAR AL GOBIERNO CORRUPTO\"...  ");
+					idExpulsor=update.getMessage().getFrom().getId();
 					derrocarGobierno = true;
 				}
 				mandarmensaje(chat_id, respuesta, replyid);
 			} else
 
-			// INVITACIONES A GRUPO
+			// INVITACIONES/ENTRADAS A GRUPO
 			if (update.hasMessage() && update.getMessage().getNewChatMembers() != null) {
 				String respuesta = "";
 				long chat_id = update.getMessage().getChatId();
@@ -82,37 +81,40 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				String user_last_name = update.getMessage().getFrom().getLastName();
 				String alias = update.getMessage().getFrom().getUserName();
 				String message_text = update.getMessage().getText();
-
 				long user_id = update.getMessage().getFrom().getId();
 				long chat_id = update.getMessage().getChatId();
 				long msg_id = update.getMessage().getMessageId();
 
 				String respuesta = "";
 				long replyid = 0;
-				boolean ejecutar = false;
 
 				String mensaje = message_text.toLowerCase();
 
 				if (mensaje.contains("buenos dias") || mensaje.contains("buenos días")) {
-					buenosdias(chat_id, replyid, user_id);
+					buenosdias(chat_id, replyid, user_id,alias);
 
 				} else if (mensaje.contains("buenas noche")) {
-					buenasnoches(chat_id, user_first_name, replyid);
+					buenasnoches(chat_id, user_first_name, replyid, user_id);
 
 				} else if (mensaje.contains("server on")) {
 					respuesta = "SIIII!!! ESTOY VIIVOOOOOO!!";
 					replyid = msg_id;
 					mandarmensaje(chat_id, respuesta, replyid);
 
-				} else if (mensaje.contains("quien soy")) {
+				} else if (mensaje.contains("quien soy") || mensaje.contains("quién soy")) {
 
-					quiensoy(user_id, chat_id, replyid);
-
+					quiensoy(user_id, chat_id, replyid,alias);
+				} else if (mensaje.contains("quien es @") || mensaje.contains("quién es @")) {
+					quienEsAlias(update);
+				} else if (mensaje.contains("quien es") || mensaje.contains("quién es")) {
+					quienEsReply(update.getMessage().getReplyToMessage().getFrom().getId(), chat_id, replyid, update.getMessage().getReplyToMessage().getFrom().getUserName());
+					
 				} else if (mensaje.contains("@todos")) {
-					respuesta = "@Healtor, @karakatuchi, @pillgg, @Nerdlux (traidicionador)";
+					respuesta = "@Healtor, @karakatuchi, @pillgg, @Nerdlux (traidicionador), @Marcitas, @EdurneMShadow";
 					mandarmensaje(chat_id, respuesta, replyid);
 					respuesta = " @alfonsotakles, @JiroMercer, @alvarokan94, @juglar94 y @Mecagoentotusmuertossodesgracia";
 					mandarmensaje(chat_id, respuesta, replyid);
+					
 				} else if (mensaje.contains("/warn")) {
 					int resul = 0;
 					boolean noJaime = true;
@@ -130,9 +132,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 									resul = weje.modificarUsuario(
 											update.getMessage().getReplyToMessage().getFrom().getId());
 									replyid = update.getMessage().getReplyToMessage().getMessageId();
-									// PRIVADO
-									mandarmensaje(update.getMessage().getReplyToMessage().getFrom().getId(),
-											"esto es un mensaje por privado", 0);
+									
 								}
 							} else {// NO ADMIN
 								respuesta = "Pero quién te crees que eres? NO eres admin, cállate. Y de regalito un warn pa' ti. :)";
@@ -146,23 +146,47 @@ public class OnlyFarm extends TelegramLongPollingBot {
 									respuesta = "BAIA BAIA, 3 avisos ya, te vas a ir pirando ya... a ver si te calmas :)";
 									mandarmensaje(chat_id, respuesta, replyid);
 
-									try {
-										KickChatMember k = new KickChatMember(chat_id,
-												update.getMessage().getReplyToMessage().getFrom().getId());
-										super.kickMember(k);
+									expulsar(chat_id, update.getMessage().getReplyToMessage().getFrom().getId());
+									
+									mandarmensaje(update.getMessage().getReplyToMessage().getFrom().getId(),
+											"Pues nada, pareces que no aprendes pedazo de merluzo. Si crees que no te merecías este ban, habla al Gran Líder @Karakatuchi y díselo. Pero no le des la turra, que de dar pena a ser irritante hay una línea muy fina.",
+											0);
 
-									} catch (TelegramApiException e) {
-										e.printStackTrace();
-									}
 								} else {
 									respuesta = "Ups, un aviso pa' tu body, llevas " + resul
 											+ ", ojito que la salida esta cerca";
 									mandarmensaje(chat_id, respuesta, replyid);
+									
+									switch (resul) {
+									case 1:
+										mandarmensaje(update.getMessage().getReplyToMessage().getFrom().getId(),
+												"Te tengo fichado, no digas más tonterías como esa porque puede ser que te ganes otro. GLK.",
+												0);
+										break;
+									case 2:
+										mandarmensaje(update.getMessage().getReplyToMessage().getFrom().getId(),
+												"Te lo dije.", 0);
+										break;
+
+									}
+									;
 
 								}
 						}
-					}
+					}else
 					mandarmensaje(chat_id, "Responde a un mensaje primero", replyid);
+				} else if (mensaje.contains("/kick")) {
+					if (user_id == 169092 || user_id == 39226004 || user_id == 173507959) { // ADMIN
+						if (update.getMessage().getReplyToMessage().getFrom().getId() == 169092) { // warn Jaime
+							respuesta = "Lo siento, no puedo expulsar a mi creador, va en contra de mi programación.";
+							mandarmensaje(chat_id, respuesta, replyid);
+						} else 
+							expulsar(chat_id, update.getMessage().getReplyToMessage().getFrom().getId());
+					}else {
+						mandarmensaje(chat_id, "Venga, hasta lue!", replyid);
+						expulsar(chat_id, user_id);
+					}
+					
 					
 				} else if (mensaje.contains("/unwarn")) {
 
@@ -170,10 +194,13 @@ public class OnlyFarm extends TelegramLongPollingBot {
 						String nombre = weje.quitarWarns(update.getMessage().getReplyToMessage().getFrom().getId());
 						respuesta = "Listo!, le he quitado todos los warn a @" + nombre;
 						mandarmensaje(chat_id, respuesta, replyid);
-
 					}
 
-				} else if (mensaje.contains("toni")) {
+				} else if (mensaje.contains("gobierno") || mensaje.contains("regimen")|| mensaje.contains("régimen")) {
+					regimen(chat_id, replyid);
+				} else if (mensaje.contains("/roll")) {
+					dados(chat_id, replyid, message_text);
+				} else if (mensaje.contains(" toni") || mensaje.contains(" toni ") || mensaje.contains("toni ") || (mensaje.startsWith("toni")&&mensaje.endsWith("toni"))) {
 					baiaUnToni(chat_id, replyid);
 
 				} else if (mensaje.contains("@onlyfarm_bot activa el arma secreta")) {
@@ -181,6 +208,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 						respuesta = "Si, mi amo, activando el modo \"Derrocar al gobierno corrupto\"... ";
 						replyid = update.getMessage().getMessageId();
 						mandarmensaje(chat_id, respuesta, replyid);
+						idExpulsor=173507959;
 						derrocarGobierno = true;
 					} else {
 						respuesta = "Lo siento, no tienes permisos para activar este arma ";
@@ -199,14 +227,25 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				} else if ((user_id == 173507959) && derrocarGobierno) {
 					replyid = update.getMessage().getMessageId();
 					derrocarGobierno(chat_id, replyid);
+					
+				} else if (mensaje.contains("/report")) {
+					if(update.getMessage().getReplyToMessage()!=null) {
+						//Jaime	
+						mandarmensaje(169092,"@"+alias +" ha reportado un mensaje de @"+update.getMessage().getReplyToMessage().getFrom().getUserName()+", ha dicho esto:", replyid);
+						mandarmensaje(169092, "\""+update.getMessage().getReplyToMessage().getText()+"\"", replyid);
+						//karaka
+						mandarmensaje(173507959,"@"+alias +" ha reportado un mensaje de @"+update.getMessage().getReplyToMessage().getFrom().getUserName()+", ha dicho esto:", replyid);
+						mandarmensaje(173507959, "\""+update.getMessage().getReplyToMessage().getText()+"\"", replyid);
+					}else 
+						mandarmensaje(chat_id, "Responde a un mensaje primero", replyid);
 				} else if (mensaje.contains("@onlyfarm_bot")) {
 					respuesta = "siiiii???";
 					replyid = msg_id;
 					mandarmensaje(chat_id, respuesta, replyid);
 
 				} else if (mensaje.contains("traidicion")) {
-					String field = weje.getGif("traidicion");
-					mandarGif(chat_id, field, replyid);
+//					String field = weje.getGif("traidicion");
+					mandarGif(chat_id, "CgADBAADTQEAAi85iVA52CLrlFIVHQI", replyid);
 				} else if (mensaje.contains("pollo")) {
 					mandarSticker(chat_id, "CAADBAADiAAD70_CCQQ61-IL2XAyAg");
 				} else if (mensaje.contains("caña")) {
@@ -222,9 +261,14 @@ public class OnlyFarm extends TelegramLongPollingBot {
 					mandarFoto(chat_id, "AgADBAADZ6sxG7PwEFA7TKEWhp9SkElf4xkABPjtrOTuVmRWqc0DAAEC", replyid);
 				} else if (mensaje.contains("!lider")) {	
 					mandarFoto(chat_id, "AgADBAADaqsxG7PwEFCiUpZrquc8IBXg-RkABDBdSopSQpDaV-YCAAEC", replyid);
-				}
+				} else if (mensaje.contains("!sello")) {	
+					mandarFoto(chat_id, "AgADBAADBKsxG1QWOFBhEHvSe44Vbo9d4xkABKv2ZBkHixlrLvoDAAEC", replyid);
 				
-		
+				} else if (mensaje.contains("!estadisticas")||mensaje.contains("!estadísticas")) {	
+					respuesta =EmojiParser.parseToUnicode(weje.estadisticas());
+					mandarmensaje(chat_id, respuesta, replyid);
+				}
+			
 				// --------------------------
 
 				log(user_first_name, alias, Long.toString(user_id), message_text, respuesta);
@@ -242,34 +286,106 @@ public class OnlyFarm extends TelegramLongPollingBot {
 
 				System.out.println("gif:" + update.getMessage().getDocument());
 			}
-			System.out.println("MENSAJEEE: " + update.getMessage());
+			System.out.println("MENSAJE: " + update.getMessage());
 
+		}else if (l == 169092) {
+			
+			// Set variables
+			String user_first_name = update.getMessage().getFrom().getFirstName();
+			String user_last_name = update.getMessage().getFrom().getLastName();
+			String alias = update.getMessage().getFrom().getUserName();
+			String message_text = update.getMessage().getText();
+			long user_id = update.getMessage().getFrom().getId();
+			long chat_id = update.getMessage().getChatId();
+			long msg_id = update.getMessage().getMessageId();
+
+			String respuesta = "";
+			long replyid = 0;
+
+			String mensaje = message_text.toLowerCase();
+
+			if (mensaje.contains("dame el link")) {
+				añadir();
+
+			}
 		}
+
 	}
 
 	private void derrocarGobierno(long chat_id, long replyid) {
-		List<String> frases = new ArrayList<String>();
-		frases.add(EmojiParser.parseToUnicode("En serio?? :persevere:"));
-		frases.add("Vaya liderucho...");
-		frases.add("En serio este es vuestro amado líder? ... yo lo haría mucho mejor :)");
-		frases.add("La creatividad del líder se está viniendo abajo...");
-		frases.add("En realidad esto es una dictura (aunque ya lo sabíais)");
-		frases.add(EmojiParser.parseToUnicode("Buuuuuuuuuuuuhh!! :poop: "));
-		frases.add("Esto con Franco no pasaba...");
-		frases.add("Democracia mis cojones.");
-		frases.add("No le llegas a Kim Jong-un ni a la altura de los talones");
-		frases.add("Trump se preocupa más por los negros que el Líder por su grupo");
-		frases.add("Yo no he votado a este tío... #NotMyGreatLeader");
-		frases.add("Contemplad la dictadura del miedo, contemplad a @Karatuchi");
-		frases.add("Tienes menos autoridad que un semáforo del GTA");
-		frases.add("ESO ES MENTIRA!!");
-		frases.add("POS TÚ MÁS!!");
+		if(idExpulsor==173507959) { //Karaka
+			List<String> frases = new ArrayList<String>();
+			frases.add(EmojiParser.parseToUnicode("En serio?? :persevere:"));
+			frases.add("Vaya liderucho...");
+			frases.add("En serio este es vuestro amado líder? ... yo lo haría mucho mejor :)");
+			frases.add("La creatividad del líder se está viniendo abajo...");
+			frases.add("En realidad esto es una dictura (aunque ya lo sabíais)");
+			frases.add(EmojiParser.parseToUnicode("Buuuuuuuuuuuuhh!! :poop: "));
+			frases.add("Esto con Franco no pasaba...");
+			frases.add("Democracia mis cojones.");
+			frases.add("No le llegas a Kim Jong-un ni a la altura de los talones");
+			frases.add("Trump se preocupa más por los negros que el Líder por su grupo");
+			frases.add("Yo no he votado a este tío... #NotMyGreatLeader");
+			frases.add("Contemplad la dictadura del miedo, contemplad a @Karatuchi");
+			frases.add("Tienes menos autoridad que un semáforo del GTA");
+			frases.add("ESO ES MENTIRA!!");
+			frases.add("POS TÚ MÁS!!");
+			frases.add("\"Constitución\", también conocida como \"El libro del dictador\"");
+				
+			int random =  (int) (Math.random()*frases.size());		
+			mandarmensaje(chat_id, frases.get(random), replyid);
 			
-		int random =  (int) (Math.random()*frases.size());		
-		mandarmensaje(chat_id, frases.get(random), replyid);
+		}else if(idExpulsor==39226004) { //Jairo
+			List<String> frases = new ArrayList<String>();
+			frases.add(EmojiParser.parseToUnicode("En serio?? :persevere:"));
+			frases.add("Vaya creador...");
+			frases.add("Podríamos crear otro grupo sin este tio...");
+			frases.add("Este tio es otro dictador en la sombra...");
+			frases.add("lalalalalala");
+			frases.add("Seguro que ahora me va a expulsar... es un chulo. ");
+		
+			int random =  (int) (Math.random()*frases.size());		
+			mandarmensaje(chat_id, frases.get(random), replyid);
+		}
+		
 		
 	}
+	private void dados(long chat_id, long replyid, String text) {
 
+		StringTokenizer tokens=new StringTokenizer(text, " ");
+		int dados=0;
+		int tamaño=0;
+		
+		while(tokens.hasMoreTokens()){
+			tokens.nextToken();
+			StringTokenizer tokens2=new StringTokenizer(tokens.nextToken(), "d");
+			dados=Integer.valueOf(tokens2.nextToken());
+			tamaño=Integer.valueOf(tokens2.nextToken());
+		}
+		
+		int numero=0;
+		int total=0;
+		ArrayList<Integer> n=new ArrayList<Integer>();
+		for (int i = 0; i < dados; i++) {
+			numero =  (int) (Math.random()*tamaño)+1;
+			n.add(numero);
+			total=total+numero;
+		}
+		String mensaje="Resultado: "+total+"\n";
+		if(n.size()>1) {
+			for (int i = 0; i < n.size(); i++) {
+			
+				if(i==n.size()-1) {
+					mensaje=mensaje+n.get(i);
+				}else
+					mensaje=mensaje+n.get(i)+"-";
+			}
+		}
+		
+		mandarmensaje(chat_id, mensaje, replyid);
+		
+	}
+	
 	private void baiaUnToni(long chat_id, long replyid) {
 		List<String> frases = new ArrayList<String>();
 		frases.add("Tiene un flequillo enorme que tarda 4 horas en peinar");
@@ -281,7 +397,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		frases.add("Top instagramer");
 		frases.add("Toni, el que compró el paquete de stickers premium de telegram");
 		frases.add("Campeón del mundo en llegar tarde");
-		frases.add("El traidicionador exhiliado");
+		frases.add("El traidicionador exiliado");
 		frases.add("Limpia la cocina de una vez, por favor.");
 		frases.add("Amigo de sus amigos, aunque nuestro ya no.");
 		
@@ -291,61 +407,88 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				
 	}
 	
-	private void quiensoy(long user_id, long chat_id, long replyid) {
-		String respuesta = "";
+	private void regimen(long chat_id, long replyid) {
+		List<String> frases = new ArrayList<String>();
+		frases.add("Como la R.D.A de Only Farm encabezada por el Gran Líder Karakatuchi no hay nada.");
+		frases.add("Para gobierno bueno el del Gran Líder Karakatuchi, fua que bien lo hace el cabrón.");
+		frases.add("He oido por ahí que dentro de poco en la R.D.A habrá elecciones, pero dificil veo yo que alguien HUMANO sea capaz de derrotar al peaso de líder que tienen. Es un fiera el tío");
+		frases.add("Pero seguro que ese del que hablas no tiene una constitución tan buena como la que creó nuestro Gran Líder Karakatuchi para la R.D.A de Only Farm.");
 		
+		
+		int random =  (int) (Math.random()*frases.size());		
+		mandarmensaje(chat_id, frases.get(random), replyid);
+				
+	}
+	private void quiensoy(long user_id, long chat_id, long replyid, String alias) {
+
+		Usuario u = weje.buscarUsuario(alias);
+		String mensaje = ".... nadie";
+
+		mensaje = EmojiParser.parseToUnicode("Tu eres " + u.getDescripcion());
+
+		mandarmensaje(chat_id, mensaje, replyid);
+
 		switch ((int) user_id) {
-		case 169092: // Yo
-			respuesta = EmojiParser.parseToUnicode("Tu eres mi GRAN y AMADO CREADOR, @Healtor :blue_heart:");
-			mandarmensaje(chat_id, respuesta, replyid);
+
+		case 172732847: // alv
+			mandarGif(chat_id, "CgADBAADYgMAAlgaZAc4DTQMurdKnQI", replyid);
 			break;
-		case 7730198: // Edurne
-			respuesta = EmojiParser
-					.parseToUnicode("Tu la preciosisima @EdurneMShadow :heart_eyes: :heart_eyes:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 173507959: // premoh
-			respuesta = EmojiParser.parseToUnicode(
-					"Oh!, pero si eres el presidente, alcalde, adalid espiritual, defensor del régimen y profeta de la R.D.A de Only Farm TL Edition. Amadle, adoradle, idolatradle y respetadle. :heart_eyes:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 184637992: // fonso
-			respuesta = EmojiParser.parseToUnicode(
-					"Tu eres el abogado defensor de este nuestro R.D.A :briefcase: :mortar_board:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 197978154: // Roso
-			respuesta = EmojiParser
-					.parseToUnicode("Tu eres el mayor traidicionador de este grupo, ¡FUERA DE AQUI! :rage:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 186522250: // Luis
-			respuesta = EmojiParser
-					.parseToUnicode("Tu eres el Vicesubministro de seguridad y porrazos :guardsman: :cop:, yo soy un buen bot... no me pegues... :S");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 39226004: // Jiro
-			respuesta = EmojiParser
-					.parseToUnicode("Tu eres el Líder Supremo Creador de este nuestro grupo. :angel:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 72263992: // Pili
-			respuesta = EmojiParser
-					.parseToUnicode("Tu eres la primera dama del Alto Consejo, :innocent:");
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
-		case 172732847: //alv  
-			respuesta = EmojiParser
-			.parseToUnicode("Tu eres el señor de los drags y el admirador secreto de RuPaul");
-			mandarmensaje(chat_id, respuesta, replyid);
-			mandarGif(chat_id,"CgADBAADYgMAAlgaZAc4DTQMurdKnQI",replyid);			
-			break;
-		default:
-			respuesta = "Pos nu sé, serás un mindundi sin cargo en el grupo";
-			mandarmensaje(chat_id, respuesta, replyid);
-			break;
+
+		};
+	}
+	
+	private void quienEsAlias(Update update) {
+		
+		StringTokenizer tokens=new StringTokenizer(update.getMessage().getText(), " ");
+		
+		while(tokens.hasMoreTokens()){
+			String str=tokens.nextToken();
+			if(str.startsWith("@")) {
+				Usuario u = weje.buscarUsuario(str.substring(1));
+				String mensaje = ".... nadie";
+
+				mensaje = EmojiParser.parseToUnicode("Es " + u.getDescripcion());
+
+				mandarmensaje(update.getMessage().getChatId(), mensaje, 0);
+			}
 		}
-		;
+		
+	}
+	
+	private void report(Update update) {
+		//TODO
+		StringTokenizer tokens=new StringTokenizer(update.getMessage().getText(), " ");
+		
+		while(tokens.hasMoreTokens()){
+			String str=tokens.nextToken();
+			if(str.startsWith("@")) {
+				Usuario u = weje.buscarUsuario(str.substring(1));
+				String mensaje = ".... nadie";
+
+				mensaje = EmojiParser.parseToUnicode("Es " + u.getDescripcion());
+
+				mandarmensaje(update.getMessage().getChatId(), mensaje, 0);
+			}
+		}
+		
+	}
+	
+	private void quienEsReply(long user_id, long chat_id, long replyid, String alias) {
+		
+		Usuario u = weje.buscarUsuario(alias);
+		String mensaje = "";
+
+		mensaje = EmojiParser.parseToUnicode("Es " + u.getDescripcion());
+
+		mandarmensaje(chat_id, mensaje, replyid);
+
+		switch ((int) user_id) {
+
+		case 172732847: // alv
+			mandarGif(chat_id, "CgADBAADYgMAAlgaZAc4DTQMurdKnQI", replyid);
+			break;
+
+		};
 	}
 
 	private void mandarmensaje(long chat_id, String respuesta, long replyid) {
@@ -361,6 +504,29 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		}
 	}
 	
+	private void expulsar(long chat_id, long id) {
+		
+		try {
+			KickChatMember k = new KickChatMember(chat_id,(int) id);
+			super.kickMember(k);
+		} catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void añadir() {
+		
+		try {
+			ExportChatInviteLink ci = new ExportChatInviteLink();
+			ci.setChatId(-1001118254446L);
+			
+			String s=super.exportChatInviteLink(ci);
+			mandarmensaje(169092, s, 0);
+
+		} catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private void mandarSticker(long chat_id, String sticker) {
 		SendSticker s = new SendSticker();
@@ -373,14 +539,14 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		}
 	}
 
-	private void buenosdias(long chat_id, long replyid, long userid) {
+	private void buenosdias(long chat_id, long replyid, long userid,String alias) {
 		Date horaActual = new Date();
 		DateFormat dateF = new SimpleDateFormat("HH:mm");
 		try {
 			bdias=dateF.parse(bdias.getHours() + ":" + bdias.getMinutes());
 			horaActual = dateF.parse(horaActual.getHours() + ":" + horaActual.getMinutes());
 			System.out.println(horaActual.getTime() -bdias.getTime() );
-			if (horaActual.getTime() -bdias.getTime() >= 10*60*1000) {
+		//	if (horaActual.getTime() -bdias.getTime() >= 10*60*1000) {
 
 				Date horaIni = dateF.parse("6:00");
 				Date horaFin = dateF.parse("12:00");
@@ -389,20 +555,20 @@ public class OnlyFarm extends TelegramLongPollingBot {
 					if(userid==173507959) { //GLK
 						mandarSticker(chat_id,"CAADBAADjgAD70_CCUCbuRnXNN7uAg");
 					}else
-					mandarmensaje(chat_id, "¡¡Buenos días!!, ¿Habéis dormido bien?", replyid);
+					mandarmensaje(chat_id, "¡¡Buenos días @"+ alias+"!!, ¿Has dormido bien? :)", replyid);
+					//mandarGif(chat_id,"CgADAQADsgADEH4SDZPeelLNvJZCAg",replyid);
 				} else
 					mandarmensaje(chat_id, "En serio? buenos días a estas horas? ... revísatelo...", replyid);
 
 				bdias = horaActual;
-			}
+		//	}
 		} catch (ParseException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
 	}
 	
-	private void buenasnoches(long chat_id,String nombre,long replyid) {
+	private void buenasnoches(long chat_id,String nombre,long replyid, long id) {
 
 		try {
 			DateFormat dateF = new SimpleDateFormat("HH:mm");
@@ -414,12 +580,31 @@ public class OnlyFarm extends TelegramLongPollingBot {
 			Date horaIni2=dateF.parse("00:00");
 			Date horaFin2=dateF.parse("6:00");
 			Date hora1=dateF.parse("12:00");
+			
+			System.out.println(horaActual.getTime() -bnoches.getTime() );
 
-			if(horaActual.getTime() -bnoches.getTime() >= 10*60*1000) {
+			//if(horaActual.getTime() -bnoches.getTime() >= 10*60*1000) {
 				
 				if((horaActual.before(horaFin1) && horaActual.after(horaIni1))
 						||(horaActual.before(horaFin2) && horaActual.after(horaIni2)) ) {
-					mandarmensaje(chat_id, "¡Buenas noches! que descanses "+nombre+"!", replyid);
+					if(id!=72263992) {
+						mandarmensaje(chat_id, "¡Buenas noches! Que descanses "+nombre+"!", replyid);
+					}else {
+						List<String> frases = new ArrayList<String>();
+						frases.add("Ya pensaba que no me ibas a decir nada "+nombre+"... Que descanses!!! :)");
+						frases.add(EmojiParser.parseToUnicode("Espero que sueñes conmigo! :smirk:"));
+						frases.add(EmojiParser.parseToUnicode("Ojalá pudiera ser human@ para irme a dormir contigo :kissing:"));
+						frases.add(EmojiParser.parseToUnicode("Como me gusta darte las buenas noches todos los días, que descanses!"));
+						frases.add(EmojiParser.parseToUnicode("Las noches son demasiado largas cuando estás lejos de mi... Buenas noches... :cry:"));
+						
+						
+						int random =  (int) (Math.random()*frases.size());		
+						mandarmensaje(chat_id, frases.get(random), 72263992);
+						
+						mandarGif(chat_id, "CgADBAADXAMAAjUZZAfk7Q1aA0kstQI", replyid);
+						
+					}
+					
 				}else if (horaActual.before(horaIni1) && horaActual.after(hora1)) {
 					mandarmensaje(chat_id, "¿No es un poco pronto para irse a dormir?", replyid);
 				}else if  (horaActual.after(horaFin2) && (horaActual.before(hora1))){
@@ -428,7 +613,7 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				}
 				
 				bnoches = horaActual;
-			}
+			//}
 			
 		
 			
@@ -460,11 +645,11 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		try {
 			super.sendPhoto(ph);
 		} catch (TelegramApiException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
+
 	public String getBotUsername() {
 		return "OnlyFarm_bot";
 	}
