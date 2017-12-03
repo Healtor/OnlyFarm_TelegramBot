@@ -5,25 +5,17 @@ import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class OFMain {
-	
-//	  public static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
-//	  public static final String MYSQL_URL = "jdbc:mysql://localhost/OnlyFarm"
-//	                                          + "user=jaime&password=jaime";
-
-	
+		
   public static void main(String[] args) {
       // Initialize Api Context
       ApiContextInitializer.init();
 
       // Instantiate Telegram Bots API
       TelegramBotsApi botsApi = new TelegramBotsApi();
-
-   //   MySQL dao = new MySQL(MYSQL_DRIVER,MYSQL_URL);
-      
+   
       try {
-	//	dao.readData();
-	} catch (Exception e1) {
-		// TODO Auto-generated catch block
+
+	} catch (Exception e1) {	
 		e1.printStackTrace();
 	}
       
