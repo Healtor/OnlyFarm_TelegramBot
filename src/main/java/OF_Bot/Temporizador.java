@@ -1,4 +1,4 @@
-package TLhello.TLhello;
+package OF_Bot;
 
 import java.util.concurrent.TimeUnit;
 

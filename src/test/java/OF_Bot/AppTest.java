@@ -1,4 +1,4 @@
-package TLhello.TLhello;
+package OF_Bot;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

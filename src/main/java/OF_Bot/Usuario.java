@@ -1,4 +1,4 @@
-package TLhello.TLhello;
+package OF_Bot;
 
 public class Usuario implements Comparable<Usuario>{
 
@@ -10,6 +10,8 @@ public class Usuario implements Comparable<Usuario>{
 	int NMensajes;
 	int NAvisosTotal;
 	String descripcion;
+	int expulsiones;
+	int abandonos;
 	
 	
 	public int getId() {
@@ -59,13 +61,26 @@ public class Usuario implements Comparable<Usuario>{
 	}
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
+	}	
+	public int getExpulsiones() {
+		return expulsiones;
+	}
+	public void setExpulsiones(int expulsiones) {
+		this.expulsiones = expulsiones;
+	}
+	public int getAbandonos() {
+		return abandonos;
+	}
+	public void setAbandonos(int abandonos) {
+		this.abandonos = abandonos;
 	}
 	
 	@Override
 	public String toString() {
-		String s= id + ", "+fName+ ", "+lName+ ", "+Alias+ ", "+NAvisos+ ", "+NMensajes+ ", "+NAvisosTotal+ ", "+descripcion;
+		String s= id + ", "+fName+ ", "+lName+ ", "+Alias+ ", "+NAvisos+ ", "+NMensajes+ ", "+NAvisosTotal+ ", "+descripcion+ ", "+expulsiones+ ", "+abandonos;
 		return s;
 	}
+	
 	@Override
 	public int compareTo(Usuario o) {
 		 if (NMensajes < o.NMensajes) {

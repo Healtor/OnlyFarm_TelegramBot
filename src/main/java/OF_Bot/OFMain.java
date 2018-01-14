@@ -1,4 +1,4 @@
-package TLhello.TLhello;
+package OF_Bot;
 
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
