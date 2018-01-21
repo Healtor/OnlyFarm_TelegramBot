@@ -12,27 +12,15 @@ public class MySQL {
 
 	String myDriver = "com.mysql.jdbc.Driver";
 	String myUrl = "jdbc:mysql://localhost/OnlyFarm";
-	Connection conn;
 
-	public MySQL() {
 
-		try {
-			Class.forName(myDriver);
-			conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	public Usuario buscarUsuario(String alias) {
 		Usuario u = new Usuario();
 
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE Alias = '" + alias + "'";
 			Statement st = conn.createStatement();
 			ResultSet rs = st.executeQuery(query);
@@ -50,8 +38,9 @@ public class MySQL {
 
 			}
 			st.close();
+			conn.close();
 
-		} catch (SQLException e) {
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
@@ -61,7 +50,8 @@ public class MySQL {
 
 	public int insertarUsuario(long id, String FName, String LName, String Alias, int NAvisos) {
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE UserID =" + id;
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -79,8 +69,9 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
+			conn.close();
 
-		} catch (SQLException e) {
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 
@@ -93,7 +84,8 @@ public class MySQL {
 	public int modificarUsuario(long id) { // warns
 		int kick = -1;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE UserID =" + id;
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -119,8 +111,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -131,7 +123,8 @@ public class MySQL {
 	public int expulsar(long id) {
 		int kick = -1;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE UserID =" + id;
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -145,8 +138,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -157,7 +150,8 @@ public class MySQL {
 	public int abandono(Integer id) {
 		int kick = -1;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE UserID =" + id;
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -171,8 +165,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -183,7 +177,8 @@ public class MySQL {
 	public String quitarWarns(long id) {
 		String alias = null;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios WHERE UserID =" + id;
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -195,8 +190,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
@@ -208,7 +203,8 @@ public class MySQL {
 		ArrayList<Comando> comandos = new ArrayList<Comando>();
 
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM comandos";
 			Statement st = conn.createStatement();
 			ResultSet rs = st.executeQuery(query);
@@ -224,8 +220,8 @@ public class MySQL {
 
 			}
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
@@ -236,7 +232,8 @@ public class MySQL {
 	public int insertarComando(Comando c) {
 		int salida = 0;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM comandos WHERE mensaje = '" + c.getComando() + "'";
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -253,8 +250,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -266,7 +263,8 @@ public class MySQL {
 	public int borrarComando(String comando) {
 		int salida = 0;
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM comandos WHERE mensaje = '" + comando + "'";
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -282,8 +280,8 @@ public class MySQL {
 			}
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -295,7 +293,8 @@ public class MySQL {
 	public String listarComandos(int tipo) {
 		String salida = "Lista de comandos\n";
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM comandos";
 			Statement st2 = conn.createStatement();
 			ResultSet rs = st2.executeQuery(query);
@@ -315,8 +314,8 @@ public class MySQL {
 
 			st2.close();
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -368,7 +367,8 @@ public class MySQL {
 	public String estadisticas() {
 		String est = "";
 		try {
-
+			Class.forName(myDriver);
+			Connection conn = DriverManager.getConnection(myUrl, "jaime", "jaime");
 			String query = "SELECT * FROM usuarios";
 			Statement st = conn.createStatement();
 			ResultSet rs = st.executeQuery(query);
@@ -416,8 +416,8 @@ public class MySQL {
 			}
 
 			st.close();
-
-		} catch (SQLException e) {
+			conn.close();
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
