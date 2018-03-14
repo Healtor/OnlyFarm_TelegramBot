@@ -37,6 +37,16 @@ public class OnlyFarm extends TelegramLongPollingBot {
 	int ComandoFase = 0;
 	Comando c = new Comando();
 
+	
+	
+	public OnlyFarm() {
+		super();
+		crearEventos();
+		
+	}
+
+	
+
 	public void onUpdateReceived(Update update) {
 
 		Long l = null;
@@ -71,7 +81,9 @@ public class OnlyFarm extends TelegramLongPollingBot {
 					mandarmensaje(chat_id, respuesta, replyid);
 				} else { // abandono
 					weje.abandono(update.getMessage().getLeftChatMember().getId());
-					mandarmensaje(chat_id, "Pues nada... que se pira... A mandar reply le toca...", replyid);
+//					mandarmensaje(chat_id, "Pues nada... que se pira... A mandar reply le toca...", replyid);
+					mandarmensaje(chat_id, "Pues nada... que se pira...", replyid);
+					mandarGif(chat_id, "CgADBAADVZwAAqscZAcS9EUjqkdcdAI", replyid);
 				}
 			} else
 
@@ -81,8 +93,10 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				long chat_id = update.getMessage().getChatId();
 				long replyid = 0;
 				if (update.getMessage().getNewChatMembers().get(0).getId() != 169092) { // Si no Jaime
-					respuesta = "Hola " + update.getMessage().getNewChatMembers().get(0).getFirstName()
-							+ ", bienvenido a la República Democrática Autocrática de Only Farm TL Edition, presidida por nuestro querido y glorioso Gran Líder Karakatuchi. Si eres nuevo en el grupo, jura cumplir con nuestra constitución, proteger la bandera ante la adversidad y servir fielmente desde ahora y para siempre. No traidiciones porque el Gran Líder tiene el dedo de echar gente calentito. Si habías sido expulsado y ahora metido de nuevo en el grupo, no es porque te echemos de menos, seguro que es porque nos has dado pena con esa cara que tienes.";
+//					respuesta = "Hola " + update.getMessage().getNewChatMembers().get(0).getFirstName()
+//							+ ", bienvenid@ a la República Democrática Autocrática de Only Farm TL Edition, presidida por nuestro querido y glorioso Gran Líder Karakatuchi. Si eres nuevo en el grupo, jura cumplir con nuestra constitución, proteger la bandera ante la adversidad y servir fielmente desde ahora y para siempre. No traidiciones porque el Gran Líder tiene el dedo de echar gente calentito. Si habías sido expulsado y ahora metido de nuevo en el grupo, no es porque te echemos de menos, seguro que es porque nos has dado pena con esa cara que tienes.";
+					respuesta = "Hola " + update.getMessage().getNewChatMembers().get(0).getFirstName()+
+							", bienvenid@ a la República Democrática Autocrática de Only Farm TL Edition, donde actualmente nos hemos librado de un gobierno corrupto (presidido por el antiguo GLK) y vivimos en plena anarquía. Pasa, toma asiento y vota por @Onlyfarm_bot ";
 				} else {
 					respuesta = EmojiParser.parseToUnicode("Bienvenido de vuelta amo, todo tranquilo en su ausencia :)");
 					derrocarGobierno = false;
@@ -243,9 +257,6 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				} else if (mensaje.contains("server on")) {
 					mandarmensaje(chat_id, "SIIII!!! ESTOY VIIVOOOOOO!!", msg_id);
 
-				} else if (mensaje.contains("@onlyfarm_bot")) {
-					mandarmensaje(chat_id, "siiiii???", msg_id);
-
 				} else if (mensaje.contains("quien soy") || mensaje.contains("quién soy")) {
 					quiensoy(user_id, chat_id, replyid, alias);
 				} else if (mensaje.contains("quien es @") || mensaje.contains("quién es @")) {
@@ -294,10 +305,13 @@ public class OnlyFarm extends TelegramLongPollingBot {
 				} else if (mensaje.contains("!constitucion") || mensaje.contains("!constitución")) {
 					mandarGif(user_id, "BQADBAADSAIAArPwEFDjXRY_HxBvCgI", replyid);
 					crearBotonesPrimero("Vale, te lo mando por privado ¿Alguién más la quiere?", chat_id, "Yo!", "constitucion",0);
-
+					
 				} else if (mensaje.contains("/help")) {
 					help(user_id, replyid);
 					crearBotonesPrimero("Vale, te lo mando por privado ¿Alguién más lo quiere?", chat_id, "Yo!", "help",0);
+
+				} else if (mensaje.contains("@onlyfarm_bot")) {
+					mandarmensaje(chat_id, "siiiii???", msg_id);
 
 				} else if (mensaje.contains("me la pido") || mensaje.contains("me lo pido")) {
 					crearBotonesPrimero("Pongamos orden de preferencias!!!\n" + alias, chat_id, "PA MIII!", "pami",0);
@@ -514,14 +528,11 @@ public class OnlyFarm extends TelegramLongPollingBot {
 					mandarmensaje(chat_id, weje.listarComandos(2), replyid);
 
 				} else if (mensaje.contains("/saypruebas")) {
-					StringTokenizer tokens = new StringTokenizer(mensaje, " ");
-					tokens.nextToken();
-					mandarmensaje(-1001193270199L, tokens.nextToken("/n"), replyid);
+					mandarmensaje(-1001193270199L, mensaje.substring(12), replyid);
 
 				} else if (mensaje.contains("/say")) {
-					StringTokenizer tokens = new StringTokenizer(mensaje, " ");
-					tokens.nextToken();
-					mandarmensaje(-1001118254446L, tokens.nextToken("/n"), replyid);
+					mandarmensaje(-1001118254446L, mensaje.substring(5), replyid);
+
 				}
 
 			comprobarComando(chat_id, mensaje, replyid);
@@ -1166,6 +1177,73 @@ public class OnlyFarm extends TelegramLongPollingBot {
 		} catch (TelegramApiException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void crearEventos() {
+		Date hoy = new Date();
+		DateFormat dateF = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		
+		List<Date> eventos = new ArrayList<Date>();
+		List<String> mensajes = new ArrayList<String>();
+		int año=hoy.getYear() +1900;
+
+//		eventos.add(new Date(año, 03, 7, 23, 01));
+//		mensajes.add("Esto es una prueba1");
+//		System.out.println(eventos.get(0).getDay());
+//		System.out.println(hoy.getYear());
+//		eventos.add(new Date(2018, 03, 7, 22, 58));
+//		mensajes.add("Esto es una prueba2");
+
+		eventos.add(new Date(año, 05, 11, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Jiromercer. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 05, 18, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Karakatuchi. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 06, 8, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @pillgg. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+
+		eventos.add(new Date(año, 06, 13, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Juglar94. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 06, 14, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Healtor. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 06, 21, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @alvarokan94. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 06, 22, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @EdurneMShadow. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 07, 26, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Nerdlux. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 8, 20, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @alfonsotakles. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 12, 26, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Marcitas. Desde OnlyFarmBot, te deseamos un feliz día, y que lo disfrutes con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		eventos.add(new Date(año, 12, 30, 9, 0));
+		mensajes.add("Mi base de datos me avisa de que hoy es el cumpleaños de @Mecagoentotusmuertossodesgracia y de @paskualii. Desde OnlyFarmBot, os deseamos un feliz día, y que lo disfruteis con los tuyos. Y lo demás ya podéis desearle lo mismo. O si no, Carmen de Mairena te cantará el cumpleaños feliz a ti también \n \n https://youtu.be/DCs1M7YOW1s");
+		
+		try {
+	
+			for (int i = 0; i < eventos.size(); i++) {
+				Date mañana= eventos.get(i);
+				mañana = dateF.parse(mañana.getYear() +"-"+ mañana.getMonth() +"-"+ mañana.getDate()+" "+mañana.getHours() + ":" + mañana.getMinutes());
+				long t = mañana.getTime() - hoy.getTime();
+				if(t>0) {
+					Evento v = new Evento(t, this, mensajes.get(i));
+					v.start();				
+				}
+				
+			}
+			
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public String getBotUsername() {
